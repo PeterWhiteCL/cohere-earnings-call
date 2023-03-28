@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 method: 'POST',
                 body: formData,
             });
+            const tempresonse = await response.text();
             const fullresponse = await response.json();
             loader.style.display = "none"; 
             transcriptEmbedding = fullresponse.embeddings.body.embeddings;
@@ -62,7 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ transcriptEmbedding, reference }),
             });
-            const tempresonse = await response.text();
             const fullresponse = await response.json();
             baseData = fullresponse.baseData;
             loader2.style.display = "none"; 
