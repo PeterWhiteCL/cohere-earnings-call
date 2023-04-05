@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
             transcriptEmbedding = fullresponse.embeddings.body.embeddings;
             reference = fullresponse.reference;
             searchContainer.style.display = 'block';
-            clearButton.style.display = 'block';
+            clearButton.style.display = '';
            
         } catch (error) {
             console.error('Error uploading file:', error);
@@ -121,4 +121,26 @@ document.addEventListener('DOMContentLoaded', () => {
         searchContainer.style.display = 'none';
     }
       
+    async function getFiles() {
+        try {
+          const response = await fetch('/files');
+          const files = await response.json();
+          populateDropdown(files);
+        } catch (error) {
+          console.error('Error fetching files:', error);
+        }
+      }
+
+      function populateDropdown(files) {
+          const dropdown = document.getElementById('file-dropdown');
+
+          files.forEach(file => {
+              const option = document.createElement('option');
+              option.value = file;
+              option.textContent = file;
+              dropdown.appendChild(option);
+          });
+      }
+
+      window.addEventListener('DOMContentLoaded', getFiles);
 });

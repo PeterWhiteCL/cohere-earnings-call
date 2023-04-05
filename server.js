@@ -26,7 +26,7 @@ app.get('/', (req, res) => {
 app.get('/files', (req, res) => {
 
   try{
-    current = __dirname;
+    process.stdout.write("Testing")
     const directoryPath = "transcripts\\"
     fs.readdir(directoryPath, (err, files) => {
       if (err) {
@@ -48,7 +48,7 @@ app.post('/upload', async (req, res) => {
   try {
     console.log("Starting Upload");
     const filename = req.body.filename;
-    const transcript = fs.readFileSync(__dirname + "\\transcripts\\" + filename, 'utf8');
+    const transcript = fs.readFileSync("transcripts\\" + filename, 'utf8');
     const reference = process_text_input(transcript)
     const embeddings = await getEmbeddings(reference);
     
