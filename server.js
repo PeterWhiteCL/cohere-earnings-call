@@ -4,10 +4,9 @@ const fs = require('fs');
 const axios = require('axios');
 const cohere = require("cohere-ai");
 const bodyParser = require('body-parser');
-//const { cosineSimilarity } = require('./utils');
+
 
 const COHERE_API_KEY = 'pjPS1nIa9HuGYGMLtfIy2peUD6d7OjtQIs5xd4dZ';
-const COHERE_API_URL = 'https://api.cohere.ai/v1/embed';
 CHUNK_SIZE = 1024
 TEMPERATURE = 0.6
 MAX_TOKENS = 100
@@ -18,21 +17,38 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static('public'));
 
+// Load index
+app.get('/', (req, res) => {        
+    res.sendFile('index.html', {root: __dirname}); 
+});
 
-app.get('/', (req, res) => {        //get requests to the root ("/") will route here
-    res.sendFile('index.html', {root: __dirname});      //server responds by sending the index.html file to the client's browser
-                                                        //the .sendFile method needs the absolute path to the file, see: https://expressjs.com/en/4x/api.html#res.sendFile 
+// Load the default earnings transcripts 
+app.get('/files', (req, res) => {
+
+  try{
+    current = __dirname;
+    const directoryPath = "transcripts\\"
+    fs.readdir(directoryPath, (err, files) => {
+      if (err) {
+        res.status(500).send('Error reading directory');
+      } else {
+        res.send(files);
+      }
+    });
+  }
+  catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error Gathering Earnings Call Files' });
+  }
 });
 
 
-
-const upload = multer({ dest: 'uploads/' });
-
-app.post('/upload', upload.single('file'), async (req, res) => {
+// Upload and create embeddings for selected earnings call
+app.post('/upload', async (req, res) => {
   try {
     console.log("Starting Upload");
-    const file = req.file;
-    const transcript = fs.readFileSync(file.path, 'utf8');
+    const filename = req.body.filename;
+    const transcript = fs.readFileSync(__dirname + "\\transcripts\\" + filename, 'utf8');
     const reference = process_text_input(transcript)
     const embeddings = await getEmbeddings(reference);
     
@@ -47,55 +63,67 @@ app.post('/upload', upload.single('file'), async (req, res) => {
   }
 });
 
+// Performs semantic search based on passed in query
 app.post('/search', async (req, res) => {
   try {
     const { transcriptEmbedding, searchTerm, reference } = req.body;
+    // Get embeddings for search term
     const searchEmbedding = await getEmbeddings([searchTerm]);
 
     if(searchEmbedding.statusCode != 200){
       throw new Error("Cohere API Error")
     }
 
+    // Find the best match search result
     const results = search(transcriptEmbedding, searchEmbedding.body.embeddings);
-    //Get the top 5 closest matches
-    const retval = new Array(5)
-    for (let i=0; i<5;i++){
-      newPrompt =  '\n'.concat(reference[results[i].index]) + '\n' + searchTerm
-      response = await cohere.generate ({model: 'command-xlarge-20221108', prompt: newPrompt, max_tokens: MAX_TOKENS, temperature: TEMPERATURE, return_likelihoods: 'NONE'})
-      retval[i] = response.body.generations[0].text.replace(/\r?\n|\r/g, " ");
+    const retval = new Array(1)
+
+    // add a ? to the search term if it isn't present
+    tempSearchTerm = searchTerm;
+    if(!searchTerm.endsWith('?')){
+      tempSearchTerm = searchTerm + '?'
     }
+    // Use the text from the search along with the prompt to create a human readable response 
+    newPrompt =  '\n'.concat(reference[results[0].index]) + '\n' + tempSearchTerm 
+    response = await cohere.generate ({model: 'command-xlarge-20221108', prompt: newPrompt, max_tokens: MAX_TOKENS, temperature: TEMPERATURE, return_likelihoods: 'NONE'})
+
+    // Clean the response 
+    retval[0] = response.body.generations[0].text.replace(/\r?\n|\r/g, " "); 
+  
     res.json({ retval });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error searching for term' });
   }
 });
 
-
+// Perform financial extractions
 app.post('/extract', async (req, res) => {
   try {
     const { transcriptEmbedding, reference } = req.body;
-    // Perform the default searches to try to get generic fianancial data
     baseData = await getBaseData(transcriptEmbedding, reference)
     res.json({ baseData });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Error searching for term' });
+    res.status(500).json({ message: 'Error retrieving financial data' });
   }
 });
 
+// Returns embeddings for given text
 async function getEmbeddings(text) {
     cohere.init(COHERE_API_KEY);
     response = await cohere.embed({texts: text, truncate: "NONE" });
   return response;
 }
 
-
+// chunks input text for embedding
 function process_text_input(text){
 	chunks = text.match((new RegExp('.{1,' + CHUNK_SIZE + '}', 'g')));
 	return chunks;
 }
 
+// Similarity is determined through Cosine similarity function
 function cosineSimilarity(a, b) {
  
   b_transpose = b[0].map((_, colIndex) => b.map(row => row[colIndex]));
@@ -106,14 +134,7 @@ function cosineSimilarity(a, b) {
   return dotProduct / (aMagnitude * bMagnitude);
 }
 
-module.exports = { cosineSimilarity };
-
-function dotproduct(a,b) {
-  var n = 0, lim = Math.min(a.length,b.length);
-  for (var i = 0; i < lim; i++) n += a[i] * b[i];
-  return n;
-}
-
+// Perform the search across all embeddings
 function search(embeddings, searchEmbedding) {
   const similarityScores = embeddings.map((embedding, index) => ({
     index,
@@ -123,11 +144,12 @@ function search(embeddings, searchEmbedding) {
   return similarityScores.sort((a, b) => b.similarity - a.similarity);
 }
 
+// Prompts used to extract financial information
 async function getBaseData(embedding, reference){
-  EPS = "what were the earnings per share?";
-  quarterRevenue = "What was the total revenue for the quarter?";
-  quarterExpenses = "What were the total expense for the quarter?";
-  netIncome = "What was the net income for the quarter?";
+  EPS = "what were the earnings per share (EPS)?";
+  quarterRevenue = "What was the total revenue for the time period covered by the transcript?";
+  quarterExpenses = "What were the total expenses spent for the time period covered?";
+  netIncome = "What was the net income for the time period covered?";
 
   qArray = [EPS, quarterRevenue,quarterExpenses, netIncome];
 
@@ -141,7 +163,7 @@ async function getBaseData(embedding, reference){
     if(embeddedElement.statusCode != 200){
       throw new Error("Cohere API Error")
     }
-    
+
     results = search(embedding, embeddedElement.body.embeddings)[0]
     newPrompt =  '\n'.concat(reference[results.index]) + '\n' + element
     response = await cohere.generate ({model: 'command-xlarge-20221108', prompt: newPrompt, max_tokens: MAX_TOKENS, temperature: TEMPERATURE, return_likelihoods: 'NONE'})

@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const uploadForm = document.getElementById('upload-form');
-    const fileInput = document.getElementById('file-input');
+    const uploadForm = document.getElementById('upload-button');
     const searchContainer = document.getElementById('search-container');
     const searchInput = document.getElementById('search-input');
     const searchButton = document.getElementById('search-button');
@@ -12,47 +11,42 @@ document.addEventListener('DOMContentLoaded', () => {
     const netincomeLabel = document.getElementById('netincome-label');
     const extractButton = document.getElementById('extract-button');
     const loader = document.getElementById('loader');
+    const financialData = document.getElementById('financial-data');
+    const fileDropdown = document.getElementById('file-dropdown');
+    const errorLabel = document.getElementById('error-label')
 
     let transcriptEmbedding;
 
-    uploadForm.addEventListener('submit', async (event) => {
+    uploadForm.addEventListener('click', async (event) => {
         event.preventDefault();
-        if (!fileInput.files[0]) return;
-        resultsList.value = [];
-        searchInput.value = "";
-        epsLabel.innerText = "";
-        revenueLabel.innerText = "";
-        expenseLabel.innerText = "";
-        netincomeLabel.innerText = "";
-
-        const formData = new FormData();
-        formData.append('file', fileInput.files[0]);
-        loader.style.display = "block"; 
+        clearPage();
+        const filename = fileDropdown.options[fileDropdown.selectedIndex].text;
+       
         try {
             const response = await fetch('/upload', {
                 method: 'POST',
-                body: formData,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filename}),
+            
             });
- 
             const fullresponse = await response.json();
             loader.style.display = "none"; 
             transcriptEmbedding = fullresponse.embeddings.body.embeddings;
             reference = fullresponse.reference;
             searchContainer.style.display = 'block';
+            clearButton.style.display = 'block';
            
         } catch (error) {
             console.error('Error uploading file:', error);
+            errorLabel.innerText = "Error uploading and embedding file";   
+            errorLabel.style.display = "block";  
+            errorLabel.style.color = 'red';       
+            clearPage();
         }
     });
 
     clearButton.addEventListener('click', async () => {
-       resultsList.value = [];
-       searchInput.value = "";
-       fileInput.value = "";
-       epsLabel.innerText = "";
-       revenueLabel.innerText = "";
-       expenseLabel.innerText = "";
-       netincomeLabel.innerText = "";
+       clearPage();
     });
 
     extractButton.addEventListener('click', async () => {
@@ -70,9 +64,15 @@ document.addEventListener('DOMContentLoaded', () => {
             revenueLabel.innerText ="Revenue: " + baseData[1]
             expenseLabel.innerText = "Expenses: " + baseData[2]
             netincomeLabel.innerText = "Net Income: " + baseData[3]
+            financialData.style.display = "block";
+            errorLabel.style.display = 'none';
         }
         catch (error) {
             console.error('Error Extracting Financial Data:', error);
+            errorLabel.innerText = 'Error Extracting Financial Data';
+            errorLabel.style.display = "block";
+            errorLabel.style.color = 'red';   
+            clearPage();
         }
     });
 
@@ -81,6 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!searchTerm) return;
 
         loader1.style.display = "block"; 
+        errorLabel.style.display = 'none';
 
         try {
             const response = await fetch('/search', {
@@ -100,6 +101,24 @@ document.addEventListener('DOMContentLoaded', () => {
             loader1.style.display = "none"; 
         } catch (error) {
             console.error('Error performing semantic search:', error);
+            errorLabel.innerText = 'Error performing semantic search';
+            errorLabel.style.display = "block";
+            errorLabel.style.color = 'red';   
+            clearPage();
         }
     });
+
+
+    function clearPage(){
+        resultsList.value = [];
+        searchInput.value = "";
+        epsLabel.innerText = "";
+        revenueLabel.innerText = "";
+        expenseLabel.innerText = "";
+        netincomeLabel.innerText = "";
+        financialData.style.display = "none";
+        clearButton.style.display = "none";
+        searchContainer.style.display = 'none';
+    }
+      
 });
