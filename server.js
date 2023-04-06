@@ -28,7 +28,7 @@ app.get('/files', (req, res) => {
   try{
 
     fs.readdir(__dirname, { withFileTypes: true }, (error, files) => {
-      const directoriesInDIrectory = files.filter((item) => item.isDirectory()).map((item) => item.name);
+      const directoriesInDIrectory = files.map((item) => item.name);
   
       directoriesInDIrectory.forEach(element=>process.stdout.write(element));
   });
