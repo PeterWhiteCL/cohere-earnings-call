@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
        
         try {
             const response = await fetch('/upload', {
-                method: 'POST',
+                method: 'GET',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ filename}),
             
