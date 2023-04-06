@@ -26,11 +26,12 @@ app.get('/', (req, res) => {
 app.get('/files', (req, res) => {
 
   try{
-    process.stdout.write("Testing")
+    process.stdout.write("Testing");
     const directoryPath = "transcripts\\"
     fs.readdir(directoryPath, (err, files) => {
       if (err) {
         res.status(500).send('Error reading directory' + err.message);
+        process.stdout.write(err.message);
       } else {
         res.send(files);
       }
