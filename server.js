@@ -27,16 +27,7 @@ app.get('/files', (req, res) => {
 
   try{
 
-    fs.readdir(__dirname, { withFileTypes: true }, (error, files) => {
-      const directoriesInDIrectory = files.map((item) => item.name);
-  
-      directoriesInDIrectory.forEach(element=>process.stdout.write(element));
-  });
-
     process.stdout.write("Testing");
-    process.stdout.write("Testing1");
-    process.stdout.write(__dirname);
-    process.stdout.write("Testing2");
     const directoryPath = "transcripts"
     fs.readdir(directoryPath, (err, files) => {
       if (err) {
@@ -58,6 +49,8 @@ app.get('/files', (req, res) => {
 app.post('/upload', async (req, res) => {
   try {
     console.log("Starting Upload");
+    process.stdout.write("Testing1");
+    
     const filename = req.body.filename;
     const transcript = fs.readFileSync("transcripts/" +  filename , 'utf8');
     const reference = process_text_input(transcript)
