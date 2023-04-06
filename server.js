@@ -59,7 +59,7 @@ app.post('/upload', async (req, res) => {
   try {
     console.log("Starting Upload");
     const filename = req.body.filename;
-    const transcript = fs.readFileSync("transcripts\\" + "\"" + filename + "\"", 'utf8');
+    const transcript = fs.readFileSync("transcripts/" +  filename , 'utf8');
     const reference = process_text_input(transcript)
     const embeddings = await getEmbeddings(reference);
     
