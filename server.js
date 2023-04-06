@@ -27,7 +27,9 @@ app.get('/files', (req, res) => {
 
   try{
     process.stdout.write("Testing");
+    process.stdout.write("Testing1");
     process.stdout.write(__dirname);
+    process.stdout.write("Testing2");
     const directoryPath = "transcripts\\"
     fs.readdir(directoryPath, (err, files) => {
       if (err) {
