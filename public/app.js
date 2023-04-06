@@ -23,10 +23,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const filename = fileDropdown.options[fileDropdown.selectedIndex].text;
        
         try {
-            const response = await fetch('/upload', {
-                method: 'GET',
+            const response = await fetch('/upload?filename='+ filename, {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filename}),
+                // body: JSON.stringify({ filename}),
             
             });
             const fullresponse = await response.json();
@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
             transcriptEmbedding = fullresponse.embeddings.body.embeddings;
             reference = fullresponse.reference;
             searchContainer.style.display = 'block';
-            clearButton.style.display = '';
+            clearButton.style.display = 'flex';
            
         } catch (error) {
             console.error('Error uploading file:', error);
