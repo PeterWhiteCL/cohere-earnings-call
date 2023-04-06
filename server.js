@@ -9,7 +9,7 @@ const bodyParser = require('body-parser');
 const COHERE_API_KEY = 'pjPS1nIa9HuGYGMLtfIy2peUD6d7OjtQIs5xd4dZ';
 CHUNK_SIZE = 1024
 TEMPERATURE = 0.6
-MAX_TOKENS = 100
+MAX_TOKENS = 200
 
 const app = express();
 
@@ -90,7 +90,7 @@ app.post('/search', async (req, res) => {
       tempSearchTerm = searchTerm + '?'
     }
     // Use the text from the search along with the prompt to create a human readable response 
-    newPrompt =  '\n'.concat(reference[results[0].index]) + '\n' + tempSearchTerm 
+    newPrompt =  "Answer the question based on the text provided." + '\n'.concat(reference[results[0].index]) + '\n' + tempSearchTerm 
     response = await cohere.generate ({model: 'command-xlarge-20221108', prompt: newPrompt, max_tokens: MAX_TOKENS, temperature: TEMPERATURE, return_likelihoods: 'NONE'})
 
     // Clean the response 
@@ -131,13 +131,17 @@ function process_text_input(text){
 
 // Similarity is determined through Cosine similarity function
 function cosineSimilarity(a, b) {
- 
+  try{
   b_transpose = b[0].map((_, colIndex) => b.map(row => row[colIndex]));
   const dotProduct = a.reduce((sum, val, i) => sum + val * b_transpose[i], 0);
   const aMagnitude = Math.sqrt(a.reduce((sum, val) => sum + val * val, 0));
   const bMagnitude = Math.sqrt(b_transpose.reduce((sum, val) => sum + val * val, 0));
-
+  
   return dotProduct / (aMagnitude * bMagnitude);
+  }
+  catch(error){
+    return 0;
+  }
 }
 
 // Perform the search across all embeddings
@@ -171,7 +175,7 @@ async function getBaseData(embedding, reference){
     }
 
     results = search(embedding, embeddedElement.body.embeddings)[0]
-    newPrompt =  '\n'.concat(reference[results.index]) + '\n' + element
+    newPrompt =  "Based on the text provided, answer the question." + '\n'.concat(reference[results.index]) + '\n' + element
     response = await cohere.generate ({model: 'command-xlarge-20221108', prompt: newPrompt, max_tokens: MAX_TOKENS, temperature: TEMPERATURE, return_likelihoods: 'NONE'})
     answer = response.body.generations[0].text.replace(/\r?\n|\r/g, " ");
     answers.push(answer)

@@ -37,11 +37,12 @@ document.addEventListener('DOMContentLoaded', () => {
             clearButton.style.display = 'flex';
            
         } catch (error) {
+            clearPage();
             console.error('Error uploading file:', error);
             errorLabel.innerText = "Error uploading and embedding file";   
             errorLabel.style.display = "block";  
             errorLabel.style.color = 'red';       
-            clearPage();
+            
         }
     });
 
@@ -72,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
             errorLabel.innerText = 'Error Extracting Financial Data';
             errorLabel.style.display = "block";
             errorLabel.style.color = 'red';   
-            clearPage();
+            loader2.style.display = "none";
         }
     });
 
@@ -104,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
             errorLabel.innerText = 'Error performing semantic search';
             errorLabel.style.display = "block";
             errorLabel.style.color = 'red';   
-            clearPage();
+            loader1.style.display = "none"; 
         }
     });
 
@@ -119,6 +120,13 @@ document.addEventListener('DOMContentLoaded', () => {
         financialData.style.display = "none";
         clearButton.style.display = "none";
         searchContainer.style.display = 'none';
+        while(( lis =resultsList.getElementsByTagName("li")).length > 0) {
+            resultsList.removeChild(lis[0]);
+        }
+        loader.style.display = "none"; 
+        loader1.style.display = "none"; 
+        loader2.style.display = "none"; 
+        errorLabel.style.display = "none";
     }
       
     async function getFiles() {
