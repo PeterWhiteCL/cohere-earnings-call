@@ -30,7 +30,7 @@ app.get('/files', (req, res) => {
     const directoryPath = "transcripts\\"
     fs.readdir(directoryPath, (err, files) => {
       if (err) {
-        res.status(500).send('Error reading directory');
+        res.status(500).send('Error reading directory' + err.message);
       } else {
         res.send(files);
       }
