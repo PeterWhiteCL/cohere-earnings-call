@@ -57,11 +57,13 @@ app.post('/upload', async (req, res) => {
     const embeddings = await getEmbeddings(reference);
     
     if(embeddings.statusCode != 200){
+      process.stdout.write("Cohere API Error");
       throw new Error("Cohere API Error")
     }
      
     res.json({ embeddings, reference });
   } catch (error) {
+    process.stdout.write(error.message);
     console.error(error);
     res.status(500).json({ message: 'Error processing file' });
   }
