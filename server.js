@@ -1,13 +1,10 @@
 const express = require('express');
-const multer = require('multer');
 const fs = require('fs');
-const axios = require('axios');
 const cohere = require("cohere-ai");
-const bodyParser = require('body-parser');
+require('dotenv').config();
 
 
-const COHERE_API_KEY = 1;
-//'pjPS1nIa9HuGYGMLtfIy2peUD6d7OjtQIs5xd4dZ';
+const COHERE_API_KEY = process.env.APIKEY;
 CHUNK_SIZE = 1024
 TEMPERATURE = 0.6
 MAX_TOKENS = 350
