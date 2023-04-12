@@ -13,14 +13,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const loader = document.getElementById('loader');
     const financialData = document.getElementById('financial-data');
     const fileDropdown = document.getElementById('file-dropdown');
-    const errorLabel = document.getElementById('error-label')
+    const errorLabel = document.getElementById('error-label');
+    const ceoQuestion = document.getElementById('ceo-question');
+    const particpantsQuestion = document.getElementById('participants-question');
+    const resultsPanel = document.getElementById('results-panel')
 
     let transcriptEmbedding;
 
     uploadForm.addEventListener('click', async (event) => {
         event.preventDefault();
         clearPage();
-        const filename = fileDropdown.options[fileDropdown.selectedIndex].text;
+        const filename = fileDropdown.options[fileDropdown.selectedIndex].value;
        
         try {
             const response = await fetch('/upload?filename='+ filename, {
@@ -81,6 +84,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const searchTerm = searchInput.value.trim();
         if (!searchTerm) return;
 
+       searchFunction(searchTerm);
+    });
+
+
+    async function searchFunction(searchTerm){
         loader1.style.display = "block"; 
         errorLabel.style.display = 'none';
 
@@ -99,6 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 listItem.innerText = result;
                 resultsList.appendChild(listItem);
             });
+            resultsPanel.style.display = "block";
             loader1.style.display = "none"; 
         } catch (error) {
             console.error('Error performing semantic search:', error);
@@ -107,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
             errorLabel.style.color = 'red';   
             loader1.style.display = "none"; 
         }
-    });
+    }
 
 
     function clearPage(){
@@ -127,6 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loader1.style.display = "none"; 
         loader2.style.display = "none"; 
         errorLabel.style.display = "none";
+        resultsPanel.style.display = "none";
     }
       
     async function getFiles() {
@@ -145,10 +155,31 @@ document.addEventListener('DOMContentLoaded', () => {
           files.forEach(file => {
               const option = document.createElement('option');
               option.value = file;
-              option.textContent = file;
+              option.textContent = file.replace(".txt", "");
               dropdown.appendChild(option);
           });
       }
 
       window.addEventListener('DOMContentLoaded', getFiles);
+
+
+
+
+
+      //Sample questions
+      ceoQuestion.addEventListener('click', async () => {
+        await searchFunction(ceoQuestion.innerText);
+     });
+
+     particpantsQuestion.addEventListener('click', async () => {
+        await searchFunction(particpantsQuestion.innerText);
+     });
+
+     ceoQuestion.addEventListener('click', async () => {
+        await searchFunction(ceoQuestion.innerText);
+     });
+
+     ceoQuestion.addEventListener('click', async () => {
+        await searchFunction(ceoQuestion.innerText);
+     });
 });

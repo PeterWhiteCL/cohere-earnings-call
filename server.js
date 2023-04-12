@@ -6,10 +6,11 @@ const cohere = require("cohere-ai");
 const bodyParser = require('body-parser');
 
 
-const COHERE_API_KEY = 'pjPS1nIa9HuGYGMLtfIy2peUD6d7OjtQIs5xd4dZ';
+const COHERE_API_KEY = 1;
+//'pjPS1nIa9HuGYGMLtfIy2peUD6d7OjtQIs5xd4dZ';
 CHUNK_SIZE = 1024
 TEMPERATURE = 0.6
-MAX_TOKENS = 200
+MAX_TOKENS = 350
 
 const app = express();
 
@@ -26,9 +27,7 @@ app.get('/', (req, res) => {
 app.get('/files', (req, res) => {
 
   try{
-
-    process.stdout.write("Testing");
-    const directoryPath = "transcripts"
+    const directoryPath = "transcripts/"
     fs.readdir(directoryPath, (err, files) => {
       if (err) {
         res.status(500).send('Error reading directory' + err.message);
@@ -48,19 +47,24 @@ app.get('/files', (req, res) => {
 // Upload and create embeddings for selected earnings call
 app.post('/upload', async (req, res) => {
   try {
-    console.log("Starting Upload");
-    process.stdout.write("Testing1");
-    
+    console.log("Starting Upload");    
     const filename = req.query.filename;
+    const JSONFilename = filename.replace(".txt", ".json")
     const transcript = fs.readFileSync("transcripts/" +  filename , 'utf8');
     const reference = process_text_input(transcript)
-    const embeddings = await getEmbeddings(reference);
     
-    if(embeddings.statusCode != 200){
-      process.stdout.write("Cohere API Error: " + embeddings.statusCode);
-      throw new Error("Cohere API Error")
+    // If embedding doesn't exist then create it
+    if(!fs.existsSync("embeddings/" +  JSONFilename)){
+      const embeddings = await getEmbeddings(reference);
+      // save embeddings to JSON
+      embedJSON = JSON.stringify(embeddings);
+      jsonFilename = filename.replace(".txt", "");
+      fs.writeFileSync("embeddings/" + jsonFilename + ".json", embedJSON);
     }
-     
+    
+    const jsonEmbed = fs.readFileSync("embeddings/" +  JSONFilename , 'utf8');
+    embeddings = JSON.parse(jsonEmbed);
+        
     res.json({ embeddings, reference });
   } catch (error) {
     process.stdout.write(error.message);
@@ -90,7 +94,7 @@ app.post('/search', async (req, res) => {
       tempSearchTerm = searchTerm + '?'
     }
     // Use the text from the search along with the prompt to create a human readable response 
-    newPrompt =  "Answer the question based on the text provided." + '\n'.concat(reference[results[0].index]) + '\n' + tempSearchTerm 
+    newPrompt =  "Using complete sentences, answer the question based on the text provided." + '\n'.concat(reference[results[0].index]) + '\n' + tempSearchTerm 
     response = await cohere.generate ({model: 'command-xlarge-20221108', prompt: newPrompt, max_tokens: MAX_TOKENS, temperature: TEMPERATURE, return_likelihoods: 'NONE'})
 
     // Clean the response 
@@ -100,7 +104,7 @@ app.post('/search', async (req, res) => {
 
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Error searching for term' });
+    res.status(500).json({ message: 'Error searching for term' + error.message });
   }
 });
 
