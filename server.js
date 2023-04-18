@@ -62,7 +62,7 @@ app.post('/upload', async (req, res) => {
     const jsonEmbed = fs.readFileSync("embeddings/" +  JSONFilename , 'utf8');
     embeddings = JSON.parse(jsonEmbed);
         
-    res.json({ embeddings, reference });
+    res.json({ embeddings, reference, transcript });
   } catch (error) {
     process.stdout.write(error.message);
     console.error(error);
@@ -91,7 +91,7 @@ app.post('/search', async (req, res) => {
       tempSearchTerm = searchTerm + '?'
     }
     // Use the text from the search along with the prompt to create a human readable response 
-    newPrompt =  "Using complete sentences, answer the question based on the text provided." + '\n'.concat(reference[results[0].index]) + '\n' + tempSearchTerm 
+    newPrompt =  "Using a complete sentence, answer the question based on the text provided." + '\n'.concat(reference[results[0].index]) + '\n' + tempSearchTerm 
     response = await cohere.generate ({model: 'command-xlarge-20221108', prompt: newPrompt, max_tokens: MAX_TOKENS, temperature: TEMPERATURE, return_likelihoods: 'NONE'})
 
     // Clean the response 
@@ -105,17 +105,22 @@ app.post('/search', async (req, res) => {
   }
 });
 
-// Perform financial extractions
-app.post('/extract', async (req, res) => {
-  try {
-    const { transcriptEmbedding, reference } = req.body;
-    baseData = await getBaseData(transcriptEmbedding, reference)
-    res.json({ baseData });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error retrieving financial data' });
-  }
+app.post('/download', async (req, res) => {
+  const filename = req.query.filename;
+
+  var file = fs.readFileSync("transcripts/" +  filename , 'utf8');
+
+  res.download(file, filename, (err)=>{
+      if (err) {
+        res.send({
+            error : err,
+            msg   : "Problem downloading the file"
+        })
+    }
+  });
 });
+
+
 
 // Returns embeddings for given text
 async function getEmbeddings(text) {
@@ -155,38 +160,7 @@ function search(embeddings, searchEmbedding) {
   return similarityScores.sort((a, b) => b.similarity - a.similarity);
 }
 
-// Prompts used to extract financial information
-async function getBaseData(embedding, reference){
-  EPS = "what were the earnings per share (EPS)?";
-  quarterRevenue = "What was the total revenue for the time period covered by the transcript?";
-  quarterExpenses = "What were the total expenses spent for the time period covered?";
-  netIncome = "What was the net income for the time period covered?";
 
-  qArray = [EPS, quarterRevenue,quarterExpenses, netIncome];
-
-  answers = []
-
-
-  cohere.init(COHERE_API_KEY);
-  for (const element of qArray){
-    embeddedElement = await getEmbeddings([element])
-
-    if(embeddedElement.statusCode != 200){
-      throw new Error("Cohere API Error")
-    }
-
-    results = search(embedding, embeddedElement.body.embeddings)[0]
-    newPrompt =  "Based on the text provided, answer the question." + '\n'.concat(reference[results.index]) + '\n' + element
-    response = await cohere.generate ({model: 'command-xlarge-20221108', prompt: newPrompt, max_tokens: MAX_TOKENS, temperature: TEMPERATURE, return_likelihoods: 'NONE'})
-    answer = response.body.generations[0].text.replace(/\r?\n|\r/g, " ");
-    answers.push(answer)
-    
-  };
-
-  
-  return answers
-
-}
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));

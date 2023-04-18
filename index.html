@@ -100,6 +100,18 @@
             padding:15px;
         }
     
+        .search{
+        font-family: "Open Sans", sans-serif;
+        border: 2px solid black;
+        border-radius: 53px;
+        padding: 15px;
+        padding-left: 50px;
+        background: none;
+        outline: none;
+        width: 500px;
+        font-size: 15px;
+        box-shadow: inset -5px -3px 10px #e6e6e6;
+    }
 
 
 
@@ -146,7 +158,9 @@
             <select id="file-dropdown" class="rounded">
                 <option value="">Select a file</option>
                 </select>
-            <button id="upload-button" class="btn btn-primary mt-2" data-inline="true">Upload</button><button id="clear-button" style="display:none" class="btn btn-primary mt-2" data-inline="true">Clear</button>
+            <button id="upload-button" class="btn btn-primary mt-2"   data-inline="true">Upload</button>&nbsp;&nbsp;<button id="download-button" style="display:none" class="btn btn-primary mt-2" data-inline="true">Download</button> 
+            <br/>
+            <button id="clear-button" style="display:none" class="btn btn-primary mt-2" data-inline="true">Clear</button>
             </div>
     </div>
     
@@ -164,7 +178,7 @@
                 
                 <h2>Search</h2>
                 <label for="search-input">Enter a search term:</label>
-                <input type="text" id="search-input" class="rounded">
+                <input type="text" class="search" placeholder="Enter Search Term" id="search-input">
                 <button id="search-button" class="btn btn-primary mt-2">Search</button>
                 <div id="loader1" style="display:none"></div>
                 <div id="results-panel" style="display:none">
@@ -182,35 +196,21 @@
                             <button id="ceo-question" class="btn btn-primary mt-2 ">Who is the CEO?</button>
                         </td>
                         <td>
-                            <button id="participants-question" class="btn btn-primary mt-2">how many participants are on the call?</button>
+                            <button id="expenses-question" class="btn btn-primary mt-2">What went well for the company this quarter? </button>
                         </td>
                     </tr>
                     <tr>
                         <td colspan="2">
-                            <button id="revenue-question" class="btn btn-primary mt-2">What was the revenue reported for the quarter?</button>
+                            <button id="sales-question" class="btn btn-primary mt-2">Did the company make a profit this quarter? If so, how much?</button>
                         </td>
                     </tr>
                     <tr>
                         <td colspan="2">
-                            <button id="losses-question" class="btn btn-primary mt-2">What was the total percentage change in revenue compared to this time last year?</button>
+                            <button id="eps-question" class="btn btn-primary mt-2">How many jobs were created or lost, and were they created or lost?</button>
                         </td>
                     </tr>
                 </table>
                                
-            </div>
-            <div style="flex: 1; border: 1px solid gray; padding: 10px;display:none">
-                <h3>Finacnial Data: <button id="extract-button">Extract Financial Data</button><br/></h3>
-                Note: Financial Data Extraction is not always accurate 
-                
-                <div id="loader2" style="display:none"></div>
-               
-                <ul id="financial-data" style="display:none">
-                    
-                    <li id="eps-label"></li>
-                    <li id="revenue-label"></li>
-                    <li id="expense-label"></li>
-                    <li id="netincome-label"></li>
-                </ul>
             </div>
         </div>
     </div>

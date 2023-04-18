@@ -5,20 +5,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchButton = document.getElementById('search-button');
     const resultsList = document.getElementById('results-list');
     const clearButton = document.getElementById('clear-button');
-    const epsLabel = document.getElementById('eps-label');
-    const revenueLabel = document.getElementById('revenue-label');
-    const expenseLabel = document.getElementById('expense-label');
-    const netincomeLabel = document.getElementById('netincome-label');
-    const extractButton = document.getElementById('extract-button');
     const loader = document.getElementById('loader');
-    const financialData = document.getElementById('financial-data');
     const fileDropdown = document.getElementById('file-dropdown');
     const errorLabel = document.getElementById('error-label');
     const ceoQuestion = document.getElementById('ceo-question');
-    const particpantsQuestion = document.getElementById('participants-question');
-    const resultsPanel = document.getElementById('results-panel')
+    const salesQuestion = document.getElementById('sales-question');
+    const epsQuestion = document.getElementById('eps-question');
+    const expenseQuestion = document.getElementById('expenses-question');
+    const resultsPanel = document.getElementById('results-panel');
+    const downloadButton = document.getElementById('download-button');
 
     let transcriptEmbedding;
+    let transcript
 
     uploadForm.addEventListener('click', async (event) => {
         event.preventDefault();
@@ -36,8 +34,10 @@ document.addEventListener('DOMContentLoaded', () => {
             loader.style.display = "none"; 
             transcriptEmbedding = fullresponse.embeddings.body.embeddings;
             reference = fullresponse.reference;
+            transcript = fullresponse.transcript;
             searchContainer.style.display = 'block';
-            clearButton.style.display = 'flex';
+            clearButton.style.display = '';
+            downloadButton.style.display='';
            
         } catch (error) {
             clearPage();
@@ -51,33 +51,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     clearButton.addEventListener('click', async () => {
        clearPage();
-    });
-
-    extractButton.addEventListener('click', async () => {
-        loader2.style.display = "block"; 
-        try {
-            const response = await fetch('/extract', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ transcriptEmbedding, reference }),
-            });
-            const fullresponse = await response.json();
-            baseData = fullresponse.baseData;
-            loader2.style.display = "none"; 
-            epsLabel.innerText = "EPS: " + baseData[0]
-            revenueLabel.innerText ="Revenue: " + baseData[1]
-            expenseLabel.innerText = "Expenses: " + baseData[2]
-            netincomeLabel.innerText = "Net Income: " + baseData[3]
-            financialData.style.display = "block";
-            errorLabel.style.display = 'none';
-        }
-        catch (error) {
-            console.error('Error Extracting Financial Data:', error);
-            errorLabel.innerText = 'Error Extracting Financial Data';
-            errorLabel.style.display = "block";
-            errorLabel.style.color = 'red';   
-            loader2.style.display = "none";
-        }
     });
 
     searchButton.addEventListener('click', async () => {
@@ -122,19 +95,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function clearPage(){
         resultsList.value = [];
         searchInput.value = "";
-        epsLabel.innerText = "";
-        revenueLabel.innerText = "";
-        expenseLabel.innerText = "";
-        netincomeLabel.innerText = "";
-        financialData.style.display = "none";
         clearButton.style.display = "none";
+        downloadButton.style.display = "none";
         searchContainer.style.display = 'none';
         while(( lis =resultsList.getElementsByTagName("li")).length > 0) {
             resultsList.removeChild(lis[0]);
         }
         loader.style.display = "none"; 
         loader1.style.display = "none"; 
-        loader2.style.display = "none"; 
         errorLabel.style.display = "none";
         resultsPanel.style.display = "none";
     }
@@ -162,6 +130,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
       window.addEventListener('DOMContentLoaded', getFiles);
 
+      downloadButton.addEventListener('click', async () => {
+
+        const filename = fileDropdown.options[fileDropdown.selectedIndex].value;
+        const fileUrl = window.URL.createObjectURL(new Blob([transcript]));
+        const fileLink = document.createElement('a');
+        fileLink.href = fileUrl;
+        fileLink.setAttribute('download', filename);
+        fileLink.setAttribute('target', '_blank');
+        document.body.appendChild(fileLink);
+        fileLink.click();
+        fileLink.remove();
+
+        // const filename = fileDropdown.options[fileDropdown.selectedIndex].value;
+        // try {
+        //     const response = await fetch('/download?filename=' + filename, {
+        //         method: 'POST',
+        //         headers: { 'Content-Type': 'application/json' },
+        //     });
+
+        //     console.log(response);
+        // } catch (error) {
+        //     console.error('Error performing semantic search:', error);
+        //     errorLabel.innerText = 'Error performing semantic search';
+        //     errorLabel.style.display = "block";
+        //     errorLabel.style.color = 'red';   
+        //     loader1.style.display = "none"; 
+        // }
+      });
 
 
 
@@ -171,15 +167,15 @@ document.addEventListener('DOMContentLoaded', () => {
         await searchFunction(ceoQuestion.innerText);
      });
 
-     particpantsQuestion.addEventListener('click', async () => {
-        await searchFunction(particpantsQuestion.innerText);
+     salesQuestion.addEventListener('click', async () => {
+        await searchFunction(salesQuestion.innerText);
      });
 
-     ceoQuestion.addEventListener('click', async () => {
-        await searchFunction(ceoQuestion.innerText);
+     epsQuestion.addEventListener('click', async () => {
+        await searchFunction(epsQuestion.innerText);
      });
 
-     ceoQuestion.addEventListener('click', async () => {
-        await searchFunction(ceoQuestion.innerText);
+     expenseQuestion.addEventListener('click', async () => {
+        await searchFunction(expenseQuestion.innerText);
      });
 });
