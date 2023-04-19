@@ -54,17 +54,22 @@ app.get('/upload', async (req, res) => {
     console.log("file read");
     
     // If embedding doesn't exist then create it
+    console.log("check embeddings");
     if(!fs.existsSync("embeddings/" +  JSONFilename)){
+      console.log("Embeddings dont exist - creat them");
       const embeddings = await getEmbeddings(reference);
       // save embeddings to JSON
       embedJSON = JSON.stringify(embeddings);
       jsonFilename = filename.replace(".txt", "");
+      console.log("Write embeddings");
       fs.writeFileSync("embeddings/" + jsonFilename + ".json", embedJSON);
     }
     
+    console.log("Reading embeddings");
     const jsonEmbed = fs.readFileSync("embeddings/" +  JSONFilename , 'utf8');
     embeddings = JSON.parse(jsonEmbed);
         
+    console.log("returning");
     res.json({ embeddings, reference, transcript });
   } catch (error) {
     process.stdout.write(error.message);
