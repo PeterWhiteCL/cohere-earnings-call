@@ -42,7 +42,7 @@ app.get('/files', (req, res) => {
 
 
 // Upload and create embeddings for selected earnings call
-app.post('/upload', async (req, res) => {
+app.get('/upload', async (req, res) => {
   try {
     console.log("Starting Upload");    
     const filename = req.query.filename;
