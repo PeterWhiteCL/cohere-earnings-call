@@ -72,8 +72,8 @@ app.get('/upload', async (req, res) => {
     console.log("returning");
     res.send([ embeddings, reference, transcript ]);
   } catch (error) {
-    process.stdout.write(error.message);
-    console.error(error);
+    console.log("Error caught");
+    console.error(error.message);
     res.status(500).json({ message: 'Error processing file' });
   }
 });
