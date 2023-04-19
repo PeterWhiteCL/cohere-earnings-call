@@ -46,9 +46,12 @@ app.get('/upload', async (req, res) => {
   try {
     console.log("Starting Upload");    
     const filename = req.query.filename;
-    const JSONFilename = filename.replace(".txt", ".json")
+    console.log("Filename is: " + filename);
+    const JSONFilename = filename.replace(".txt", ".json");
+    console.log("Reading file");
     const transcript = fs.readFileSync("transcripts/" +  filename , 'utf8');
-    const reference = process_text_input(transcript)
+    const reference = process_text_input(transcript);
+    console.log("file read");
     
     // If embedding doesn't exist then create it
     if(!fs.existsSync("embeddings/" +  JSONFilename)){
