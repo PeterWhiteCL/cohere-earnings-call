@@ -67,10 +67,13 @@ app.get('/upload', async (req, res) => {
     
     console.log("Reading embeddings");
     const jsonEmbed = fs.readFileSync("embeddings/" +  JSONFilename , 'utf8');
+    console.log("Json embed");
+    console.log(jsonEmbed);
     embeddings = JSON.parse(jsonEmbed);
-        
+    
+    
     console.log("returning");
-    res.send([jsonEmbed]);
+    
     // res.send([ embeddings, reference, transcript ]);
   } catch (error) {
     console.log("Error caught");
