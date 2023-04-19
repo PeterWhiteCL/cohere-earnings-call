@@ -70,7 +70,7 @@ app.get('/upload', async (req, res) => {
     embeddings = JSON.parse(jsonEmbed);
         
     console.log("returning");
-    res.send(transcript);
+    res.json({transcript});
     // res.send([ embeddings, reference, transcript ]);
   } catch (error) {
     console.log("Error caught");
